@@ -234,3 +234,82 @@ NotWMPaint:
 WndProc endp
  
 END MainEntry                       ; Specify entry point, else _WinMainCRTStartup is assumed
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;ChatGPT - create a grey window with a white circle;;;;;;;;;;;;;;;;
+
+.386
+.model flat,stdcall
+option casemap:none
+
+include \masm32\include\windows.inc
+include \masm32\include\user32.inc
+include \masm32\include\gdi32.inc
+
+includelib \masm32\lib\user32.lib
+includelib \masm32\lib\gdi32.lib
+
+.const
+    ClassName db "MyWindowClass",0
+    AppName db "My Application",0
+
+.data
+    hwnd HWND ?
+    hInstance HINSTANCE ?
+    msg MSG ?
+
+.code
+    start:
+        ; Register window class
+        invoke GetModuleHandle, NULL
+        mov hInstance, eax
+        mov eax, offset WndProc
+        mov edx, offset ClassName
+        xor ecx, ecx
+        mov ebx, CS_HREDRAW or CS_VREDRAW
+        mov esi, COLOR_WINDOW
+        mov edi, NULL
+        invoke RegisterClassEx, ADDR wndClass
+
+        ; Create window
+        invoke CreateWindowEx, NULL, ADDR ClassName, ADDR AppName, WS_OVERLAPPEDWINDOW, \
+               CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, \
+               hInstance, NULL
+        mov hwnd, eax
+        invoke ShowWindow, hwnd, SW_SHOWDEFAULT
+        invoke UpdateWindow, hwnd
+
+        ; Message loop
+        .while TRUE
+            invoke GetMessage, ADDR msg, NULL, 0, 0
+            .break .if (!eax)
+            invoke TranslateMessage, ADDR msg
+            invoke DispatchMessage, ADDR msg
+        .endw
+
+        invoke ExitProcess, 0
+
+    WndProc proc hWnd:HWND, uMsg:UINT, wParam:WPARAM, lParam:LPARAM
+        .if uMsg == WM_DESTROY
+            invoke PostQuitMessage, NULL
+        .elseif uMsg == WM_PAINT
+            invoke GetClientRect, hWnd, ADDR rc
+            invoke GetDC, hWnd
+            mov hdc, eax
+            invoke CreateSolidBrush, RGB(192, 192, 192) ; grey color
+            mov hbrush, eax
+            invoke SelectObject, hdc, hbrush
+            invoke Ellipse, hdc, (rc.right-rc.left)/2-150, (rc.bottom-rc.top)/2-150, \
+                   (rc.right-rc.left)/2+150, (rc.bottom-rc.top)/2+150 ; white circle with radius 150
+            invoke DeleteObject, hbrush
+            invoke ReleaseDC, hWnd, hdc
+        .else
+            invoke DefWindowProc, hWnd, uMsg, wParam, lParam
+            ret
+        .endif
+        xor eax, eax
+        ret
+    WndProc endp
+
+end start
+
