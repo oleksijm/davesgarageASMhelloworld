@@ -313,3 +313,41 @@ includelib \masm32\lib\gdi32.lib
 
 end start
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Difference between CALL and INVOKE - ChatGPT;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;In x86 assembly language, both "invoke" and "call" instructions are used for calling a procedure or function. However, they have some differences in their behavior and usage.
+
+;The "call" instruction is a low-level instruction that performs a direct jump to a subroutine or function specified by its address. 
+;It pushes the current instruction pointer (IP) onto the stack, so that the program can return to the calling instruction after the subroutine is finished. 
+;The "call" instruction can be used to call both internal and external procedures.
+
+;The "invoke" instruction, on the other hand, is a high-level macro that is specific to the MASM (Microsoft Macro Assembler) and its derivatives, such as the masm32 or the Win32API.
+;It is used to call external functions or procedures, and provides some additional features such as argument validation, automatic stack cleanup, and support for calling functions that use the stdcall or cdecl calling conventions. 
+;The "invoke" macro is expanded by the assembler into a sequence of instructions that includes a "call" instruction, and possibly other instructions for argument setup and cleanup.
+
+;Here's an example code snippet that demonstrates the usage of both "call" and "invoke" instructions:
+
+; Example of using call and invoke instructions
+
+; This procedure takes two arguments, adds them together,
+; and returns the result in the EAX register
+AddTwoNumbers proc arg1:DWORD, arg2:DWORD
+    mov eax, arg1
+    add eax, arg2
+    ret
+AddTwoNumbers endp
+
+.code
+    ; Call the AddTwoNumbers procedure using the "call" instruction
+    mov eax, 123
+    mov ebx, 456
+    call AddTwoNumbers
+    ; The result is now in the EAX register
+
+    ; Call the MessageBoxA function using the "invoke" macro
+    invoke MessageBoxA, NULL, addr MsgBoxText, addr MsgBoxCaption, MB_OK
+    ; The arguments are validated, the stack is cleaned up automatically,
+    ; and the function is called using the stdcall calling convention
+
