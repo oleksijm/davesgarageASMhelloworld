@@ -354,4 +354,40 @@ AddTwoNumbers endp
     invoke MessageBoxA, NULL, addr MsgBoxText, addr MsgBoxCaption, MB_OK
     ; The arguments are validated, the stack is cleaned up automatically,
     ; and the function is called using the stdcall calling convention
+    
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Hello World in ASM;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
+    ;source - https://stackoverflow.com/questions/52796300/assembly-programming-winasm-vs-visual-studio-2017
+    
+    .MODEL flat, stdcall
+;works - 22.04.2023
+; https://learn.microsoft.com/en-us/cpp/assembler/masm/proto
+
+
+GetStdHandle PROTO STDCALL,     ; https://learn.microsoft.com/en-us/windows/console/getstdhandle
+    nStdHandle: SDWORD
+WriteFile PROTO STDCALL,        ; https://learn.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-writefile
+    hFile: DWORD,                       ; output handle
+    lpBuffer: PTR BYTE,                 ; pointer to buffer
+    nNumberOfBytesToWrite: DWORD,       ; size of buffer
+    lpNumberOfBytesWritten: PTR DWORD,  ; num bytes written
+    lpOverlapped: PTR DWORD             ; ptr to asynchronous info
+ExitProcess PROTO STDCALL,      ; https://learn.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-exitprocess
+    dwExitCode: DWORD                   ; return code
+
+.DATA                   ; https://learn.microsoft.com/en-us/cpp/assembler/masm/dot-data
+    Hallo db "Hello world!",13,10
+
+.DATA?                  ; https://learn.microsoft.com/en-us/cpp/assembler/masm/dot-data-q
+    lpNrOfChars dd ?
+
+.CODE                   ; https://learn.microsoft.com/en-us/cpp/assembler/masm/dot-code
+main PROC               ; learn.microsoft.com/en-us/cpp/assembler/masm/proc
+    invoke GetStdHandle, -11            ; -> StdOut-Handle into EAX
+    invoke WriteFile, eax, OFFSET Hallo, LENGTHOF Hallo, OFFSET lpNrOfChars, 0
+    invoke ExitProcess, 0
+main ENDP
+
+END main                ; https://learn.microsoft.com/en-us/cpp/assembler/masm/end-masm
 
